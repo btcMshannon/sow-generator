@@ -5,19 +5,28 @@
     <title>SOW Generator</title>
 </head>
 <body>
-    <nav>
-        {{ url_for(Home</a> |
-        {{ url_for(Add SOW</a> |
-        {{ url_for(View SOWs</a>
-    </nav>
-    <hr>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="flash {{ category }}">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-    {% block content %}{% endblock %}
+    <header>
+        <h1>SOW Generator</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index               <li>{{ url_for(Add SOW</a></li>
+                <li><a href="{{ url_for('get_sows') }}">View SOWs</a></li>
+ef="{{ url_for('settings') }}">Settingsl>
+        </nav>
+    </header>
+
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
 </body>
 </html>

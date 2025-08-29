@@ -1,46 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
-<h3>Settings</h3>
+<h2>Settings</h2>
 
-<h4>Manage Charger Types</h4>
+<h3>Manage Charger Types</h3>
 <table>
-  <tr>
-    <th>Charger Type</th>
-    <th>Actions</th>
-  </tr>
-  {% for charger in charger_types %}
-  <tr>
-    <td>{{ charger.name }}</td>
-    <td>
-      {{ url_for(
-        <button type="submit">Delete</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
+    <tr>
+        <th>Charger Type</th>
+        <th>Actions</th>
+    </tr>
+    {% for charger in charger_types %}
+    <tr>
+        <td>{{ charger.name }}</td>
+        <td>
+            {{ url_for(Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
 </table>
 
-<h4>Manage Customers</h4>
+<h3>Manage Customers</h3>
 <table>
-  <tr>
-    <th>Customer</th>
-    <th>Check-in Contact</th>
-    <th>Check-out Contact</th>
-    <th>Actions</th>
-  </tr>
-  {% for customer in customers %}
-  <tr>
-    <td>{{ customer.name }}</td>
-    <td>{{ customer.check_in_contact or '--' }}</td>
-    <td>{{ customer.check_out_contact or '--' }}</td>
-    <td>
-      {{ url_for(Edit</a>
-      {{ url_for(
-        <button type="submit">Delete</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
+    <tr>
+        <th>Customer</th>
+        <th>Check-in Contact</th>
+        <th>Check-out Contact</th>
+        <th>Actions</th>
+    </tr>
+    {% for customer in customers %}
+    <tr>
+        <td>{{ customer.name }}</td>
+        <td>{{ customer.check_in_contact or '--' }}</td>
+        <td>{{ customer.check_out_contact or '--' }}</td>
+        <td>
+            <a url_for(Edit</a> |
+            {{ url_for(Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
 </table>
 
 <p>{{ url_for(Add New Customer</a></p>
