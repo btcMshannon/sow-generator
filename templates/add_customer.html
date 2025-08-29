@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Add New Customer</h2>
+
+<form method="POST">
+    <div class="form-group">
+        <label for="customer_name">Customer Name</label>
+        <input type="text" id="customer_name" name="customer_name" required placeholder="Enter customer name...">
+    </div>
+
+    <h3>Check-in Information</h3>
+    <div class="form-group">
+        <label for="check_in_contact">Check-in Contact Person</label>
+        <input type="text" id="check_in_contact" name="check_in_contact" placeholder="Contact person name...">
+    </div>
+
+    <div class="form-group">
+        <label for="check_in_phone">Check-in Phone Number</label>
+        <input type="text" id="check_in_phone" name="check_in_phone" placeholder="Phone number...">
+    </div>
+
+    <div class="form-group">
+        <label for="check_in_instructions">Check-in Instructions</label>
+        <textarea id="check_in_instructions" name="check_in_instructions" placeholder="Special instructions for checking in with this customer..."></textarea>
+    </div>
+
+    <h3>Check-out Information</h3>
+    <div class="form-group">
+        <label for="check_out_contact">Check-out Contact Person</label>
+        <input type="text" id="check_out_contact" name="check_out_contact" placeholder="Contact person name...">
+    </div>
+
+    <div class="form-group">
+        <label for="check_out_phone">Check-out Phone Number</label>
+        <input type="text" id="check_out_phone" name="check_out_phone" placeholder="Phone number...">
+    </div>
+
+    <div class="form-group">
+        <label for="check_out_instructions">Check-out Instructions</label>
+        <textarea id="check_out_instructions" name="check_out_instructions" placeholder="Special instructions for checking out with this customer..."></textarea>
+    </div>
+
+    <div class="button-group">
+        <button type="submit" class="btn-success">Add Customer</button>
+        <a href="{{ url_for('settings') }}" class="btn-warning" style="text-decoration: none; padding: 10px 20px; border-radius: 4px; display: inline-block;">Cancel</a>
+    </div>
+</form>
+{% endblock %}

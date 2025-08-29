@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>All SOWs</h3>
+<table>
+  <tr>
+    <th>Title</th>
+    <th>Charger Type</th>
+    <th>Customer</th>
+    <th>Created</th>
+    <th>Actions</th>
+  </tr>
+  {% if sows %}
+    {% for sow in sows %}
+    <tr>
+      <td>{{ sow.title or sow.name }}</td>
+      <td>{{ sow.charger_type_name }}</td>
+      <td>{{ sow.customer_name or '--' }}</td>
+      <td>{{ sow.created_at[:10] }}</td>
+      <td>
+        <a href="{{ url_for('edit_sow_detail', sow_id=sow.id) }}">Editrm action="{{ url_for('delete_sow', sow_id=sowck="return confirm('Delete this SOW?')">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  {% else %}
+    <tr><td colspan="5">No SOWs found.</td></tr>
+  {% endif %}
+</table>
+{% endblock %}

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SOW Generator</title>
+</head>
+<body>
+    <nav>
+        {{ url_for(Home</a> |
+        {{ url_for(Add SOW</a> |
+        {{ url_for(View SOWs</a>
+    </nav>
+    <hr>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</body>
+</html>
