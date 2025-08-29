@@ -320,7 +320,7 @@ function displayImages(imageData) {
             imageDisplayDiv.appendChild(imgContainer);
         });
         
-        # Insert after the content panel
+        // Insert after the content panel
         const contentPanel = document.querySelector('.content-panel');
         contentPanel.appendChild(imageDisplayDiv);
     }
@@ -349,13 +349,13 @@ function downloadPDF() {
         return;
     }
     
-    # Build PDF URL with customer parameter if selected
+    // Build PDF URL with customer parameter if selected
     let pdfUrl = '/generate_pdf/' + currentSOW;
     if (currentCustomer) {
         pdfUrl += '/' + currentCustomer;
     }
     
-    # Create temporary link and trigger download
+    // Create temporary link and trigger download
     const link = document.createElement('a');
     link.href = pdfUrl;
     link.style.display = 'none';
@@ -372,13 +372,13 @@ function copyToClipboard() {
     }
     
     textarea.select();
-    textarea.setSelectionRange(0, 99999); # For mobile devices
+    textarea.setSelectionRange(0, 99999); // For mobile devices
     
     try {
         document.execCommand('copy');
         alert('SOW content copied to clipboard!');
     } catch (err) {
-        # Fallback for newer browsers
+        // Fallback for newer browsers
         navigator.clipboard.writeText(textarea.value).then(() => {
             alert('SOW content copied to clipboard!');
         }).catch(() => {
