@@ -303,12 +303,12 @@ def get_sow_content(sow_id):
             return jsonify(dict(sow))
         return jsonify({})
 
-@app.route('/get_sows/<int:charger_type_id>')
+@app.route('/get_sows_by_charger/<int:charger_type_id>')
 def get_sows_by_charger(charger_type_id):
     with sqlite3.connect('sow_database.db') as conn:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM sows WHERE charger_type_id = ?', (charger_type_id,))
+        cursor.execute('SELECT id, name, title FROM sows WHERE charger_type_id = ?', (charger_type_id,))
         sows = cursor.fetchall()
     return jsonify([dict(s) for s in sows])
 

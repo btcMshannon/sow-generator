@@ -3,30 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>SOW Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <header>
-        <h1>SOW Generator</h1>
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('index               <li>{{ url_for(Add SOW</a></li>
-                <li><a href="{{ url_for('get_sows') }}">View SOWs</a></li>
-ef="{{ url_for('settings') }}">Settingsl>
-        </nav>
-    </header>
-
-    <main>
+    <nav>
+        <a href="{{ url_for('index') }}">Home</a> |
+        <a href="{{ url_for('add_sow') }}">Add SOW</a> |
+        <a href="{{ url_for('edit_sows') }}">View/Edit SOWs</a>
+    </nav>
+    <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="flash {{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
         {% endwith %}
-
         {% block content %}{% endblock %}
-    </main>
-
-    {% block scripts %}{% endblock %}
+    </div>
 </body>
 </html>

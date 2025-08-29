@@ -1,31 +1,44 @@
 {% extends "base.html" %}
+
 {% block content %}
 <h2>Edit SOWs</h2>
-<table>
-    <tr>
-        <th>Title</th>
-        <th>Charger Type</th>
-        <th>Customer</th>
-        <th>Created</th>
-        <th>Actions</th>
-    </tr>
-    {% if sows %}
-        {% for sow in sows %}
+
+<table class="table">
+    <thead>
         <tr>
-            <td>{{ sow.title or sow.name }}</td>
-            <td>{{ sow.charger_type_name }}</td>
-            <td>{{ sow.customer_name or '--' }}</td>
-            <td>{{ sow.created_at[:10] }}</td>
-            <td>
-                {{ url_for(Edit</a> |
-                {{ url_for(PDF</a> |
-                {{ url_for(Delete</a>
-            </td>
+            <th>Title</th>
+            <th>Charger Type</th>
+            <th>Customer</th>
+            <th>Created</th>
+            <th>Actions</th>
         </tr>
-        {% endfor %}
-    {% else %}
-        <tr><td colspan="5">No SOWs found. {{ url_for(Add your first SOW</a></td></tr>
-    {% endif %}
+    </thead>
+    <tbody>
+        {% if sows %}
+            {% for sow in sows %}
+            <tr>
+                <td>{{ sow.title or sow.name }}</td>
+                <td>{{ sow.charger_type_name }}</td>
+                <td>{{ sow.customer_name or '--' }}</td>
+                <td>{{ sow.created_at[:10] }}</td>
+                <td>
+                    <a href="{{ url_for('edit_sow_detail', sow_id=sow.id) }}" class="btn-primary" style="padding: 8px 12px; font-size: 12px; text-decoration: none; margin-right: 5px;">Edit</a>
+                    <a href="{{ url_for('generate_pdf', sow_id=sow.id) }}" class="btn-success" style="padding: 8px 12px; font-size: 12px; text-decoration: none; margin-right: 5px;">PDF</a>
+                    <form method="POST" action="{{ url_for('delete_sow', sow_id=sow.id) }}" style="display: inline-block;" onsubmit="return confirm('Are you sure you want to delete this SOW? This will also delete all associated images.')">
+                        <button type="submit" class="btn-danger" style="padding: 8px 12px; font-size: 12px;">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #666; font-style: italic;">No SOWs found. <a href="{{ url_for('add_sow') }}">Add your first SOW</a></td>
+            </tr>
+        {% endif %}
+    </tbody>
 </table>
-<p>{{ url_for(Add New SOW</a></p>
+
+<div style="margin-top: 20px;">
+    <a href="{{ url_for('add_sow') }}" class="btn-success">Add New SOW</a>
+</div>
 {% endblock %}
