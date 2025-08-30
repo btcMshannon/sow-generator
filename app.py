@@ -11,6 +11,7 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 import tempfile
+from PIL import Image as PilImage
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'your-secret-key-here'
@@ -121,7 +122,7 @@ def add_sow():
             documents = request.form.get('documents')
             service_instructions = request.form.get('service_instructions')
             uploaded_files = request.files.getlist('sow_images')
-            captions = request.form.getlist('captions')
+            new_image_captions = request.form.getlist('new_image_captions')
 
             with sqlite3.connect('sow_database.db') as conn:
                 conn.execute('PRAGMA journal_mode=WAL;')
@@ -137,7 +138,7 @@ def add_sow():
                         filename = f"{uuid.uuid4()}.{file.filename.rsplit('.', 1)[1].lower()}"
                         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                         file.save(file_path)
-                        caption = captions[i] if i < len(captions) else ''
+                        caption = new_image_captions[i] if i < len(new_image_captions) else ''
                         cursor.execute('''
                             INSERT INTO sow_images (sow_id, filename, original_name, caption)
                             VALUES (?, ?, ?, ?)
@@ -367,25 +368,17 @@ def generate_pdf(sow_id, customer_id=None):
 
             story = []
 
+            # Standard SOW header
+            now = datetime.now().strftime("%a %b %d %H:%M:%S %Y CDT")
+            story.append(Paragraph(f"SOW Created [{now}]", styles['NormalStyle']))
+            story.append(Paragraph("TECH SUPPORT CONTACT INFORMATION", styles['HeadingStyle']))
+            story.append(Paragraph("BTC Power Technical Support Hotline 1-855-901-1558", styles['NormalStyle']))
+            story.append(Spacer(1, 0.25 * inch))
+
             # Add SOW title
             if sow_data['title']:
                 story.append(Paragraph(sow_data['title'], styles['TitleStyle']))
                 story.append(Spacer(1, 0.25 * inch))
-
-            # Add SOW content
-            fields = [
-                ('MAINTENANCE SCOPE', 'maintenance_scope'),
-                ('PARTS', 'parts'),
-                ('TOOLS', 'tools'),
-                ('DOCUMENTS', 'documents'),
-                ('SERVICE INSTRUCTIONS', 'service_instructions')
-            ]
-
-            for heading, field in fields:
-                if sow_data[field]:
-                    story.append(Paragraph(heading, styles['HeadingStyle']))
-                    story.append(Paragraph(sow_data[field], styles['NormalStyle']))
-                    story.append(Spacer(1, 0.2 * inch))
 
             # Add Customer Check-in/Check-out Information
             if customer_data:
@@ -414,6 +407,21 @@ def generate_pdf(sow_id, customer_id=None):
                     if customer_data[field]:
                         story.append(Paragraph(f'<b>{label}</b> {customer_data[field]}', styles['NormalStyle']))
 
+            # Add main SOW content
+            fields = [
+                ('MAINTENANCE SCOPE', 'maintenance_scope'),
+                ('PARTS', 'parts'),
+                ('TOOLS', 'tools'),
+                ('DOCUMENTS', 'documents'),
+                ('SERVICE INSTRUCTIONS', 'service_instructions')
+            ]
+
+            for heading, field in fields:
+                if sow_data[field]:
+                    story.append(Paragraph(heading, styles['HeadingStyle']))
+                    story.append(Paragraph(sow_data[field], styles['NormalStyle']))
+                    story.append(Spacer(1, 0.2 * inch))
+
             # Add images and captions at the very end
             if image_data:
                 story.append(PageBreak())
@@ -423,39 +431,34 @@ def generate_pdf(sow_id, customer_id=None):
                     image_path = os.path.join(app.config['UPLOAD_FOLDER'], img['filename'])
                     if os.path.exists(image_path):
                         if img['filename'].lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
-                            # Handle images
                             try:
-                                # Scale image to fit within page width
-                                rl_img = RLImage(image_path)
-                                img_width, img_height = rl_img._origW, rl_img._origH
+                                # Resize image to fit page and prevent overflow
+                                pil_img = PilImage.open(image_path)
+                                img_width, img_height = pil_img.size
                                 max_width = letter[0] - 2 * inch
-                                if img_width > max_width:
-                                    img_height = img_height * (max_width / img_width)
-                                    img_width = max_width
+                                max_height = letter[1] - 2 * inch
                                 
-                                rl_img.drawWidth = img_width
-                                rl_img.drawHeight = img_height
+                                ratio = min(max_width / img_width, max_height / img_height)
+                                
+                                rl_img = RLImage(image_path, width=img_width * ratio, height=img_height * ratio)
                                 story.append(rl_img)
                                 
-                                # Add caption
                                 if img['caption']:
                                     story.append(Paragraph(img['caption'], styles['CaptionStyle']))
                                 else:
-                                    # Use original filename as caption if none provided
                                     story.append(Paragraph(img['original_name'], styles['CaptionStyle']))
                                 story.append(Spacer(1, 0.2 * inch))
                             except Exception as e:
                                 story.append(Paragraph(f'<i>Error displaying image: {img["original_name"]}</i>', styles['NormalStyle']))
                                 story.append(Spacer(1, 0.2 * inch))
                         elif img['filename'].lower().endswith('.pdf'):
-                            # Handle PDF "images" by adding a reference
                             story.append(Paragraph(f'<b>Reference Document:</b> {img["original_name"]}', styles['NormalStyle']))
                             story.append(Paragraph(f'<i>{img["caption"]}</i>' if img['caption'] else '', styles['CaptionStyle']))
                             story.append(Spacer(1, 0.2 * inch))
 
             doc.build(story)
             temp_file.seek(0)
-            return send_file(temp_file, as_attachment=True, download_name=f'SOW-{sow_data["title"]}.pdf')
+            return send_file(temp_file.name, as_attachment=True, download_name=f'SOW-{sow_data["title"]}.pdf')
 
     except Exception as e:
         flash(f'An error occurred during PDF generation: {str(e)}', 'error')

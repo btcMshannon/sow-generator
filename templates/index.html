@@ -78,313 +78,314 @@
 
 {% block scripts %}
 <script>
-let currentChargerType = null;
-let currentSOW = null;
-let currentCustomer = null;
+    let currentChargerType = null;
+    let currentSOW = null;
+    let currentCustomer = null;
 
-document.addEventListener('DOMContentLoaded', function() {
-    loadSOWCounts();
-});
-
-function loadSOWCounts() {
-    const chargerRows = document.querySelectorAll('[id^="count_"]');
-    chargerRows.forEach(row => {
-        const chargerId = row.id.replace('count_', '');
-        fetch('/get_sows_by_charger/' + chargerId)
-            .then(response => response.json())
-            .then(data => {
-                row.textContent = data.length;
-            })
-            .catch(error => {
-                row.textContent = 'Error';
-            });
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSOWCounts();
     });
-}
 
-document.getElementById('charger_type').addEventListener('change', function() {
-    const chargerTypeId = this.value;
-    const sowSelect = document.getElementById('sow');
-    
-    sowSelect.innerHTML = '<option value="">Select...</option>';
-    sowSelect.disabled = !chargerTypeId;
-    
-    document.getElementById('sowContent').value = '';
-    document.getElementById('generateBtn').disabled = true;
-    
-    if (chargerTypeId) {
-        currentChargerType = chargerTypeId;
-        fetch('/get_sows_by_charger/' + chargerTypeId)
-            .then(response => response.json())
-            .then(data => {
-                if (data.length > 0) {
-                    data.forEach(sow => {
-                        const option = document.createElement('option');
-                        option.value = sow.id;
-                        option.textContent = sow.title;
-                        sowSelect.appendChild(option);
-                    });
-                    sowSelect.disabled = false;
-                } else {
-                    sowSelect.innerHTML = '<option value="">No SOWs available</option>';
-                }
-            })
-            .catch(error => {
-                console.error('Error loading SOWs:', error);
-                sowSelect.innerHTML = '<option value="">Error loading SOWs</option>';
-            });
-    } else {
-        currentChargerType = null;
+    function loadSOWCounts() {
+        const chargerRows = document.querySelectorAll('[id^="count_"]');
+        chargerRows.forEach(row => {
+            const chargerId = row.id.replace('count_', '');
+            fetch('/get_sows_by_charger/' + chargerId)
+                .then(response => response.json())
+                .then(data => {
+                    row.textContent = data.length;
+                })
+                .catch(error => {
+                    row.textContent = 'Error';
+                });
+        });
     }
-});
 
-document.getElementById('customer').addEventListener('change', function() {
-    const customerId = this.value;
-    
-    if (customerId) {
-        currentCustomer = customerId;
-    } else {
-        currentCustomer = null;
-    }
-});
-
-document.getElementById('sow').addEventListener('change', function() {
-    const sowId = this.value;
-    const generateBtn = document.getElementById('generateBtn');
-    const pdfBtn = document.getElementById('pdfBtn');
-    
-    if (sowId) {
-        currentSOW = sowId;
-        generateBtn.disabled = false;
-        pdfBtn.disabled = false;
-    } else {
-        currentSOW = null;
-        generateBtn.disabled = true;
-        pdfBtn.disabled = true;
+    document.getElementById('charger_type').addEventListener('change', function() {
+        const chargerTypeId = this.value;
+        const sowSelect = document.getElementById('sow');
+        
+        sowSelect.innerHTML = '<option value="">Select...</option>';
+        sowSelect.disabled = !chargerTypeId;
+        
         document.getElementById('sowContent').value = '';
-    }
-});
-
-function generateSOW() {
-    if (!currentSOW) return;
-    
-    const promises = [
-        fetch('/get_sow_content/' + currentSOW).then(response => response.json()),
-        fetch('/get_sow_images/' + currentSOW).then(response => response.json())
-    ];
-    
-    // If customer is selected, fetch customer data too
-    if (currentCustomer) {
-        promises.push(fetch('/get_customer/' + currentCustomer).then(response => response.json()));
-    }
-    
-    Promise.all(promises).then(results => {
-        const sowData = results[0];
-        const imageData = results[1];
-        const customerData = results.length > 2 ? results[2] : null;
+        document.getElementById('generateBtn').disabled = true;
         
-        let content = '';
-        
-        // Add SOW title at the very top
-        if (sowData.title) {
-            content += sowData.title + '\n';
+        if (chargerTypeId) {
+            currentChargerType = chargerTypeId;
+            fetch('/get_sows_by_charger/' + chargerTypeId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        data.forEach(sow => {
+                            const option = document.createElement('option');
+                            option.value = sow.id;
+                            option.textContent = sow.title;
+                            sowSelect.appendChild(option);
+                        });
+                        sowSelect.disabled = false;
+                    } else {
+                        sowSelect.innerHTML = '<option value="">No SOWs available</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading SOWs:', error);
+                    sowSelect.innerHTML = '<option value="">Error loading SOWs</option>';
+                });
+        } else {
+            currentChargerType = null;
         }
-        
-        // Add standard SOW header (appears on EVERY SOW)
-        const now = new Date();
-        content += 'SOW Created [' + now.toString() + ']\n';
-        content += 'TECH SUPPORT CONTACT INFORMATION:\n';
-        content += 'BTC Power Technical Support Hotline 1-855-901-1558\n\n';
-        
-        // Add customer header information if customer is selected
-        if (customerData && (customerData.check_in_contact || customerData.check_in_phone || customerData.check_in_instructions)) {
-            content += 'CUSTOMER CHECK-IN INFORMATION\n';
-            if (customerData.check_in_contact) {
-                content += 'Check-in Contact: ' + customerData.check_in_contact + '\n';
-            }
-            if (customerData.check_in_phone) {
-                content += 'Check-in Phone: ' + customerData.check_in_phone + '\n';
-            }
-            if (customerData.check_in_instructions) {
-                content += 'Check-in Instructions: ' + customerData.check_in_instructions + '\n';
-            }
-            content += '\n';
-        }
-        
-        // Add SOW content (skip title since it's already at the top)
-        if (sowData.maintenance_scope) {
-            content += 'MAINTENANCE SCOPE\n' + sowData.maintenance_scope + '\n\n';
-        }
-        if (sowData.parts) {
-            content += 'PARTS\n' + sowData.parts + '\n\n';
-        }
-        if (sowData.tools) {
-            content += 'TOOLS\n' + sowData.tools + '\n\n';
-        }
-        if (sowData.documents) {
-            content += 'DOCUMENTS\n' + sowData.documents + '\n\n';
-        }
-        if (sowData.service_instructions) {
-            content += 'SERVICE INSTRUCTIONS\n' + sowData.service_instructions + '\n\n';
-        }
-        
-        // Add images section if images exist
-        if (imageData && imageData.length > 0) {
-            content += 'REFERENCE IMAGES\n';
-            imageData.forEach(image => {
-                content += 'Image: ' + image.original_name + (image.caption ? ' (' + image.caption + ')' : '') + '\n';
-            });
-            content += '\n';
-        }
-
-        // Add customer footer information if customer is selected
-        if (customerData && (customerData.check_out_contact || customerData.check_out_phone || customerData.check_out_instructions)) {
-            content += 'CUSTOMER CHECK-OUT INFORMATION\n';
-            if (customerData.check_out_contact) {
-                content += 'Check-out Contact: ' + customerData.check_in_contact + '\n';
-            }
-            if (customerData.check_out_phone) {
-                content += 'Check-out Phone: ' + customerData.check_out_phone + '\n';
-            }
-            if (customerData.check_out_instructions) {
-                content += 'Check-out Instructions: ' + customerData.check_out_instructions + '\n';
-            }
-        }
-        
-        document.getElementById('sowContent').value = content.trim();
-        
-        // Display images below the text area if any exist
-        displayImages(imageData);
-        
-    }).catch(error => {
-        console.error('Error loading SOW/customer content:', error);
-        document.getElementById('sowContent').value = 'Error loading content';
     });
-}
 
-function displayImages(imageData) {
-    // Remove existing image display
-    const existingImageDisplay = document.getElementById('sow-images-display');
-    if (existingImageDisplay) {
-        existingImageDisplay.remove();
-    }
-    
-    if (imageData && imageData.length > 0) {
-        const imageDisplayDiv = document.createElement('div');
-        imageDisplayDiv.id = 'sow-images-display';
-        imageDisplayDiv.style.marginTop = '20px';
-        imageDisplayDiv.style.padding = '15px';
-        imageDisplayDiv.style.border = '1px solid #ddd';
-        imageDisplayDiv.style.borderRadius = '4px';
-        imageDisplayDiv.style.backgroundColor = '#f9f9f9';
+    document.getElementById('customer').addEventListener('change', function() {
+        const customerId = this.value;
         
-        const header = document.createElement('h4');
-        header.textContent = 'Reference Images:';
-        header.style.marginTop = '0';
-        imageDisplayDiv.appendChild(header);
+        if (customerId) {
+            currentCustomer = customerId;
+        } else {
+            currentCustomer = null;
+        }
+    });
+
+    document.getElementById('sow').addEventListener('change', function() {
+        const sowId = this.value;
+        const generateBtn = document.getElementById('generateBtn');
+        const pdfBtn = document.getElementById('pdfBtn');
         
-        imageData.forEach(image => {
-            const imgContainer = document.createElement('div');
-            imgContainer.style.display = 'inline-block';
-            imgContainer.style.margin = '10px';
-            imgContainer.style.textAlign = 'center';
+        if (sowId) {
+            currentSOW = sowId;
+            generateBtn.disabled = false;
+            pdfBtn.disabled = false;
+        } else {
+            currentSOW = null;
+            generateBtn.disabled = true;
+            pdfBtn.disabled = true;
+            document.getElementById('sowContent').value = '';
+        }
+    });
+
+    function generateSOW() {
+        if (!currentSOW) return;
+        
+        const promises = [
+            fetch('/get_sow_content/' + currentSOW).then(response => response.json()),
+            fetch('/get_sow_images/' + currentSOW).then(response => response.json())
+        ];
+        
+        // If customer is selected, fetch customer data too
+        if (currentCustomer) {
+            promises.push(fetch('/get_customer/' + currentCustomer).then(response => response.json()));
+        }
+        
+        Promise.all(promises).then(results => {
+            const sowData = results[0];
+            const imageData = results[1];
+            const customerData = results.length > 2 ? results[2] : null;
             
-            if (image.filename.toLowerCase().endswith('.pdf')) {
-                const pdfLink = document.createElement('a');
-                pdfLink.href = '/static/uploads/' + image.filename;
-                pdfLink.target = '_blank';
-                pdfLink.textContent = '📄 ' + image.original_name;
-                pdfLink.style.display = 'block';
-                pdfLink.style.padding = '20px';
-                pdfLink.style.border = '1px solid #ccc';
-                pdfLink.style.borderRadius = '4px';
-                pdfLink.style.textDecoration = 'none';
-                pdfLink.style.backgroundColor = 'white';
-                imgContainer.appendChild(pdfLink);
-            } else {
-                const img = document.createElement('img');
-                img.src = '/static/uploads/' + image.filename;
-                img.style.maxWidth = '250px';
-                img.style.maxHeight = '200px';
-                img.style.border = '1px solid #ccc';
-                img.style.borderRadius = '4px';
-                imgContainer.appendChild(img);
-                
-                const caption = document.createElement('div');
-                caption.textContent = image.caption || image.original_name;
-                caption.style.fontSize = '12px';
-                caption.style.marginTop = '5px';
-                caption.style.color = '#666';
-                imgContainer.appendChild(caption);
+            let content = '';
+            
+            // Add standard SOW header (appears on EVERY SOW)
+            const now = new Date();
+            content += 'SOW Created [' + now.toString() + ']\n';
+            content += 'TECH SUPPORT CONTACT INFORMATION:\n';
+            content += 'BTC Power Technical Support Hotline 1-855-901-1558\n\n';
+            
+            // Add customer header information if customer is selected
+            if (customerData && (customerData.check_in_contact || customerData.check_in_phone || customerData.check_in_instructions)) {
+                content += 'CUSTOMER CHECK-IN INFORMATION\n';
+                if (customerData.check_in_contact) {
+                    content += 'Check-in Contact: ' + customerData.check_in_contact + '\n';
+                }
+                if (customerData.check_in_phone) {
+                    content += 'Check-in Phone: ' + customerData.check_in_phone + '\n';
+                }
+                if (customerData.check_in_instructions) {
+                    content += 'Check-in Instructions: ' + customerData.check_in_instructions + '\n';
+                }
+                content += '\n';
             }
             
-            imageDisplayDiv.appendChild(imgContainer);
+            // Add SOW title
+            if (sowData.title) {
+                content += 'Title\n' + sowData.title + '\n\n';
+            }
+            
+            // Add SOW content
+            if (sowData.maintenance_scope) {
+                content += 'MAINTENANCE SCOPE\n' + sowData.maintenance_scope + '\n\n';
+            }
+            if (sowData.parts) {
+                content += 'PARTS\n' + sowData.parts + '\n\n';
+            }
+            if (sowData.tools) {
+                content += 'TOOLS\n' + sowData.tools + '\n\n';
+            }
+            if (sowData.documents) {
+                content += 'DOCUMENTS\n' + sowData.documents + '\n\n';
+            }
+            if (sowData.service_instructions) {
+                content += 'SERVICE INSTRUCTIONS\n' + sowData.service_instructions + '\n\n';
+            }
+            
+            // Add images section if images exist
+            if (imageData && imageData.length > 0) {
+                content += 'REFERENCE IMAGES\n';
+                imageData.forEach(image => {
+                    content += 'Image: ' + image.original_name + (image.caption ? ' (' + image.caption + ')' : '') + '\n';
+                });
+                content += '\n';
+            }
+
+            // Add customer footer information if customer is selected
+            if (customerData && (customerData.check_out_contact || customerData.check_out_phone || customerData.check_out_instructions)) {
+                content += 'CUSTOMER CHECK-OUT INFORMATION\n';
+                if (customerData.check_out_contact) {
+                    content += 'Check-out Contact: ' + customerData.check_out_contact + '\n';
+                }
+                if (customerData.check_out_phone) {
+                    content += 'Check-out Phone: ' + customerData.check_out_phone + '\n';
+                }
+                if (customerData.check_out_instructions) {
+                    content += 'Check-out Instructions: ' + customerData.check_out_instructions + '\n';
+                }
+            }
+            
+            document.getElementById('sowContent').value = content.trim();
+            
+            // Display images below the text area if any exist
+            displayImages(imageData);
+            
+        }).catch(error => {
+            console.error('Error loading SOW/customer content:', error);
+            document.getElementById('sowContent').value = 'Error loading content';
         });
+    }
+
+    function displayImages(imageData) {
+        // Remove existing image display
+        const existingImageDisplay = document.getElementById('sow-images-display');
+        if (existingImageDisplay) {
+            existingImageDisplay.remove();
+        }
         
-        // Insert after the content panel
         const contentPanel = document.querySelector('.content-panel');
-        contentPanel.appendChild(imageDisplayDiv);
+        
+        if (imageData && imageData.length > 0) {
+            const imageDisplayDiv = document.createElement('div');
+            imageDisplayDiv.id = 'sow-images-display';
+            imageDisplayDiv.style.marginTop = '20px';
+            imageDisplayDiv.style.padding = '15px';
+            imageDisplayDiv.style.border = '1px solid #ddd';
+            imageDisplayDiv.style.borderRadius = '4px';
+            imageDisplayDiv.style.backgroundColor = '#f9f9f9';
+            
+            const header = document.createElement('h4');
+            header.textContent = 'Reference Images:';
+            header.style.marginTop = '0';
+            imageDisplayDiv.appendChild(header);
+            
+            imageData.forEach(image => {
+                const imgContainer = document.createElement('div');
+                imgContainer.style.display = 'inline-block';
+                imgContainer.style.margin = '10px';
+                imgContainer.style.textAlign = 'center';
+                
+                if (image.filename.toLowerCase().endsWith('.pdf')) {
+                    const pdfLink = document.createElement('a');
+                    pdfLink.href = '/static/uploads/' + image.filename;
+                    pdfLink.target = '_blank';
+                    pdfLink.textContent = '📄 ' + image.original_name;
+                    pdfLink.style.display = 'block';
+                    pdfLink.style.padding = '20px';
+                    pdfLink.style.border = '1px solid #ccc';
+                    pdfLink.style.borderRadius = '4px';
+                    pdfLink.style.textDecoration = 'none';
+                    pdfLink.style.backgroundColor = 'white';
+                    imgContainer.appendChild(pdfLink);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = '/static/uploads/' + image.filename;
+                    img.style.maxWidth = '250px';
+                    img.style.maxHeight = '200px';
+                    img.style.border = '1px solid #ccc';
+                    img.style.borderRadius = '4px';
+                    imgContainer.appendChild(img);
+                    
+                    const caption = document.createElement('div');
+                    caption.textContent = image.caption || image.original_name;
+                    caption.style.fontSize = '12px';
+                    caption.style.marginTop = '5px';
+                    caption.style.color = '#666';
+                    imgContainer.appendChild(caption);
+                }
+                
+                imageDisplayDiv.appendChild(imgContainer);
+            });
+            
+            // Insert after the content panel
+            contentPanel.appendChild(imageDisplayDiv);
+        }
     }
-}
 
-function startOver() {
-    document.getElementById('charger_type').value = '';
-    document.getElementById('customer').value = '';
-    document.getElementById('sow').innerHTML = '<option value="">Select...</option>';
-    document.getElementById('sow').disabled = true;
-    document.getElementById('sowContent').value = '';
-    document.getElementById('generateBtn').disabled = true;
-    document.getElementById('pdfBtn').disabled = true;
-    currentChargerType = null;
-    currentSOW = null;
-    currentCustomer = null;
-    const existingImageDisplay = document.getElementById('sow-images-display');
-    if (existingImageDisplay) {
-        existingImageDisplay.remove();
+    function startOver() {
+        document.getElementById('charger_type').value = '';
+        document.getElementById('customer').value = '';
+        document.getElementById('sow').innerHTML = '<option value="">Select...</option>';
+        document.getElementById('sow').disabled = true;
+        document.getElementById('sowContent').value = '';
+        document.getElementById('generateBtn').disabled = true;
+        document.getElementById('pdfBtn').disabled = true;
+        currentChargerType = null;
+        currentSOW = null;
+        currentCustomer = null;
+        const existingImageDisplay = document.getElementById('sow-images-display');
+        if (existingImageDisplay) {
+            existingImageDisplay.remove();
+        }
     }
-}
 
-function downloadPDF() {
-    if (!currentSOW) {
-        alert('Please select a SOW first.');
-        return;
+    function downloadPDF() {
+        if (!currentSOW) {
+            alert('Please select a SOW first.');
+            return;
+        }
+        
+        // Build PDF URL with customer parameter if selected
+        let pdfUrl = '/generate_pdf/' + currentSOW;
+        if (currentCustomer) {
+            pdfUrl += '/' + currentCustomer;
+        }
+        
+        // Create temporary link and trigger download
+        const link = document.createElement('a');
+        link.href = pdfUrl;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
-    
-    // Build PDF URL with customer parameter if selected
-    let pdfUrl = '/generate_pdf/' + currentSOW;
-    if (currentCustomer) {
-        pdfUrl += '/' + currentCustomer;
-    }
-    
-    // Create temporary link and trigger download
-    const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
 
-function copyToClipboard() {
-    const textarea = document.getElementById('sowContent');
-    if (textarea.value.trim() === '') {
-        alert('No content to copy! Generate a SOW first.');
-        return;
-    }
-    
-    textarea.select();
-    textarea.setSelectionRange(0, 99999); // For mobile devices
-    
-    try {
-        document.execCommand('copy');
-        alert('SOW content copied to clipboard!');
-    } catch (err) {
-        // Fallback for newer browsers
-        navigator.clipboard.writeText(textarea.value).then(() => {
+    function copyToClipboard() {
+        const textarea = document.getElementById('sowContent');
+        if (textarea.value.trim() === '') {
+            alert('No content to copy! Generate a SOW first.');
+            return;
+        }
+        
+        textarea.select();
+        textarea.setSelectionRange(0, 99999); // For mobile devices
+        
+        try {
+            document.execCommand('copy');
             alert('SOW content copied to clipboard!');
-        }).catch(() => {
-            alert('Unable to copy to clipboard. Please copy manually.');
-        });
+        } catch (err) {
+            // Fallback for newer browsers
+            navigator.clipboard.writeText(textarea.value).then(() => {
+                alert('SOW content copied to clipboard!');
+            }).catch(() => {
+                alert('Unable to copy to clipboard. Please copy manually.');
+            });
+        }
     }
-}
 </script>
 {% endblock %}
