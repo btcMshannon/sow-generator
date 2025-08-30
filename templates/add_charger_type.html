@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Charger Types</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a> |
+        <a href="/add_sow">Add SOW</a> |
+        <a href="/edit_sows">View/Edit SOWs</a> |
+        <strong>Add Charger Types</strong>
+    </nav>
+
+    <div class="container">
+        <h2>Add Charger Types</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flash-list">
+              {% for category, message in messages %}
+                <li class="flash-{{ category|e }}">{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        <form method="post" action="/add_charger_type" class="form-inline">
+            <label for="name" style="margin-right:8px;">Charger Type Name</label>
+            <input type="text" id="name" name="name" placeholder="e.g., HPDC, 100kW" required>
+            <button type="submit" class="btn-success" style="margin-left:8px;">Add</button>
+        </form>
+
+        <h3 style="margin-top:24px;">Existing Types</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width:80px;">ID</th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if charger_types and charger_types|length %}
+                    {% for ct in charger_types %}
+                        <tr>
+                            <td>{{ ct.id }}</td>
+                            <td>{{ ct.name }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="2"><em>No charger types yet.</em></td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

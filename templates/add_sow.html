@@ -1,44 +1,59 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>Add New SOW</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add SOW</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a> |
+        <strong>Add SOW</strong> |
+        <a href="/edit_sows">View/Edit SOWs</a> |
+        <a href="/add_charger_type">Add Charger Types</a>
+    </nav>
 
-<form method="POST" enctype="multipart/form-data">
-    <label for="charger_type">Charger Type</label>
-    <select name="charger_type_id" id="charger_type">
-        {% for charger in charger_types %}
-            <option value="{{ charger.id }}">{{ charger.name }}</option>
-        {% endfor %}
-    </select>
+    <div class="container">
+        <h2>Add SOW</h2>
 
-    <label for="customer">Customer (Optional)</label>
-    <select name="customer_id" id="customer">
-        {% for customer in customers %}
-            <option value="{{ customer.id }}">{{ customer.name }}</option>
-        {% endfor %}
-    </select>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flash-list">
+              {% for category, message in messages %}
+                <li class="flash-{{ category|e }}">{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
 
-    <label for="sow_title">Title</label>
-    <input type="text" name="sow_title" id="sow_title">
+        <form method="post" action="/add_sow" class="form-vertical">
+            <div class="form-group">
+                <label for="title">SOW Title</label>
+                <input type="text" id="title" name="title" placeholder="e.g., HPDC – Preventive Maintenance" required>
+            </div>
 
-    <label for="maintenance_scope">Maintenance Scope</label>
-    <textarea name="maintenance_scope" id="maintenance_scope"></textarea>
+            <div class="form-group">
+                <label for="charger_type_id">Charger Type</label>
+                <select id="charger_type_id" name="charger_type_id" required>
+                    <option value="">Select…</option>
+                    {% for ct in charger_types %}
+                        <option value="{{ ct.id }}">{{ ct.name }}</option>
+                    {% endfor %}
+                </select>
+                {% if not charger_types or charger_types|length == 0 %}
+                    <p class="hint"><em>No charger types yet. <a href="/add_charger_type">Add one here</a>.</em></p>
+                {% endif %}
+            </div>
 
-    <label for="parts">Parts</label>
-    <textarea name="parts" id="parts"></textarea>
+            <div class="form-group">
+                <label for="content">Content (optional)</label>
+                <textarea id="content" name="content" class="large-textarea" placeholder="SOW body text..."></textarea>
+            </div>
 
-    <label for="tools">Tools</label>
-    <textarea name="tools" id="tools"></textarea>
-
-    <label for="documents">Documents</label>
-    <textarea name="documents" id="documents"></textarea>
-
-    <label for="service_instructions">Service Instructions</label>
-    <textarea name="service_instructions" id="service_instructions"></textarea>
-
-    <label for="sow_images">Upload Images (Optional)</label>
-    <input type="file" name="sow_images" multiple>
-
-    <button type="submit">Add SOW</button>
-    <button type="reset">Clear Form</button>
-</form>
-{% endblock %}
+            <div class="button-group">
+                <button type="submit" class="btn-success">Create SOW</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
