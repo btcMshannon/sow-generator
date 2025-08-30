@@ -1,59 +1,105 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add SOW</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-    <nav>
-        <a href="/">Home</a> |
-        <strong>Add SOW</strong> |
-        <a href="/edit_sows">View/Edit SOWs</a> |
-        <a href="/add_charger_type">Add Charger Types</a>
-    </nav>
+{% extends "base.html" %}
 
-    <div class="container">
-        <h2>Add SOW</h2>
+{% block content %}
+<h2>Add New SOW</h2>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <ul class="flash-list">
-              {% for category, message in messages %}
-                <li class="flash-{{ category|e }}">{{ message }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-        {% endwith %}
-
-        <form method="post" action="/add_sow" class="form-vertical">
-            <div class="form-group">
-                <label for="title">SOW Title</label>
-                <input type="text" id="title" name="title" placeholder="e.g., HPDC – Preventive Maintenance" required>
-            </div>
-
-            <div class="form-group">
-                <label for="charger_type_id">Charger Type</label>
-                <select id="charger_type_id" name="charger_type_id" required>
-                    <option value="">Select…</option>
-                    {% for ct in charger_types %}
-                        <option value="{{ ct.id }}">{{ ct.name }}</option>
-                    {% endfor %}
-                </select>
-                {% if not charger_types or charger_types|length == 0 %}
-                    <p class="hint"><em>No charger types yet. <a href="/add_charger_type">Add one here</a>.</em></p>
-                {% endif %}
-            </div>
-
-            <div class="form-group">
-                <label for="content">Content (optional)</label>
-                <textarea id="content" name="content" class="large-textarea" placeholder="SOW body text..."></textarea>
-            </div>
-
-            <div class="button-group">
-                <button type="submit" class="btn-success">Create SOW</button>
-            </div>
-        </form>
+<form method="POST" action="{{ url_for('add_sow') }}" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="title">SOW Title</label>
+        <input type="text" id="title" name="title" placeholder="e.g., HPDC – Preventive Maintenance" required>
     </div>
-</body>
-</html>
+
+    <div class="form-group">
+        <label for="charger_type_id">Charger Type</label>
+        <select id="charger_type_id" name="charger_type_id" required>
+            <option value="">Select…</option>
+            {% for ct in charger_types %}
+                <option value="{{ ct.id }}">{{ ct.name }}</option>
+            {% endfor %}
+        </select>
+        {% if not charger_types or charger_types|length == 0 %}
+            <p class="hint"><em>No charger types yet. <a href="{{ url_for('add_charger_type') }}">Add one here</a>.</em></p>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="customer_id">Customer (Optional)</label>
+        <select id="customer_id" name="customer_id">
+            <option value="">Select...</option>
+            {% for customer in customers %}
+            <option value="{{ customer.id }}">{{ customer.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="maintenance_scope">Maintenance Scope</label>
+        <textarea id="maintenance_scope" name="maintenance_scope" class="large-textarea" placeholder="Describe the scope of work..."></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="parts">Parts</label>
+        <textarea id="parts" name="parts" class="large-textarea" placeholder="List all parts..."></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="tools">Tools</label>
+        <textarea id="tools" name="tools" class="large-textarea" placeholder="List all tools..."></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="documents">Documents</label>
+        <textarea id="documents" name="documents" class="large-textarea" placeholder="List all documents..."></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="service_instructions">Service Instructions</label>
+        <textarea id="service_instructions" name="service_instructions" class="large-textarea" placeholder="Step-by-step service instructions..."></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="sow_images">Upload Images (Optional)</label>
+        <input type="file" name="sow_images" id="sow_images" multiple accept="image/*,.pdf">
+        <small style="color: #666;">Supported formats: PNG, JPG, JPEG, GIF, PDF. Max 16MB per file.</small>
+        <div id="new-image-captions" style="margin-top: 10px;"></div>
+    </div>
+    
+    <div class="button-group">
+        <button type="submit" class="btn-success">Create SOW</button>
+    </div>
+</form>
+
+<script>
+document.getElementById('sow_images').addEventListener('change', function(event) {
+    const captionDiv = document.getElementById('new-image-captions');
+    captionDiv.innerHTML = '';
+    
+    const files = Array.from(event.target.files);
+    
+    if (files.length > 0) {
+        const header = document.createElement('h4');
+        header.textContent = 'Add Captions for New Images (Optional):';
+        captionDiv.appendChild(header);
+    }
+    
+    files.forEach((file, index) => {
+        const fileContainer = document.createElement('div');
+        fileContainer.style.marginBottom = '10px';
+        
+        const label = document.createElement('label');
+        label.textContent = `Caption for "${file.name}":`;
+        label.style.display = 'block';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = 'new_image_captions';
+        input.placeholder = 'Enter caption...';
+        input.style.width = '100%';
+        
+        fileContainer.appendChild(label);
+        fileContainer.appendChild(input);
+        captionDiv.appendChild(fileContainer);
+    });
+});
+</script>
+{% endblock %}

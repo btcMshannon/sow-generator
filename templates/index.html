@@ -22,7 +22,7 @@
                     <label for="charger_type">Charger Type</label>
                     <select id="charger_type" name="charger_type">
                         <option value="">Select...</option>
-                        {% for c in chargers %}
+                        {% for c in charger_types %}
                             <option value="{{ c.id }}">{{ c.name }}</option>
                         {% endfor %}
                     </select>
@@ -32,8 +32,9 @@
                     <label for="customer">Customer (for checkout info)</label>
                     <select id="customer" name="customer">
                         <option value="">Select...</option>
-                        <option value="3">EVConnect</option>
-                        <option value="1">EVgo</option>
+                        {% for c in customers %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -59,8 +60,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- You can wire this later; keeping placeholders -->
-                            {% for c in chargers %}
+                            {% for c in charger_types %}
                                 <tr>
                                     <td>{{ c.name }}</td>
                                     <td id="count_{{ c.id }}">--</td>
@@ -89,7 +89,6 @@
         </div>
     </div>
 
-    <!-- Make sure this is present so the SOW dropdown populates -->
     <script src="/static/app.js" defer></script>
 </body>
 </html>

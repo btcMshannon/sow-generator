@@ -3,7 +3,7 @@
 {% block content %}
 <h2>Edit SOW: {{ sow.title }}</h2>
 
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" action="{{ url_for('edit_sow', sow_id=sow.id) }}" enctype="multipart/form-data">
     <div class="form-group">
         <label for="charger_type_id">Charger Type</label>
         <select id="charger_type_id" name="charger_type_id" required>
@@ -14,33 +14,43 @@
     </div>
 
     <div class="form-group">
-        <label for="sow_title">Title</label>
-        <input type="text" id="sow_title" name="sow_title" value="{{ sow.title }}" required>
+        <label for="customer_id">Customer (Optional)</label>
+        <select id="customer_id" name="customer_id">
+            <option value="">Select...</option>
+            {% for customer in customers %}
+                <option value="{{ customer.id }}" {% if customer.id == sow.customer_id %}selected{% endif %}>{{ customer.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="title">SOW Title</label>
+        <input type="text" id="title" name="title" value="{{ sow.title }}" required>
     </div>
 
     <div class="form-group">
         <label for="maintenance_scope">Maintenance Scope</label>
-        <textarea id="maintenance_scope" name="maintenance_scope" required>{{ sow.maintenance_scope }}</textarea>
+        <textarea id="maintenance_scope" name="maintenance_scope" class="large-textarea">{{ sow.maintenance_scope }}</textarea>
     </div>
 
     <div class="form-group">
         <label for="parts">Parts</label>
-        <textarea id="parts" name="parts" required>{{ sow.parts }}</textarea>
+        <textarea id="parts" name="parts" class="large-textarea">{{ sow.parts }}</textarea>
     </div>
 
     <div class="form-group">
         <label for="tools">Tools</label>
-        <textarea id="tools" name="tools" required>{{ sow.tools }}</textarea>
+        <textarea id="tools" name="tools" class="large-textarea">{{ sow.tools }}</textarea>
     </div>
 
     <div class="form-group">
         <label for="documents">Documents</label>
-        <textarea id="documents" name="documents" required>{{ sow.documents }}</textarea>
+        <textarea id="documents" name="documents" class="large-textarea">{{ sow.documents }}</textarea>
     </div>
 
     <div class="form-group">
         <label for="service_instructions">Service Instructions</label>
-        <textarea id="service_instructions" name="service_instructions" required>{{ sow.service_instructions }}</textarea>
+        <textarea id="service_instructions" name="service_instructions" class="large-textarea">{{ sow.service_instructions }}</textarea>
     </div>
 
     <div class="form-group">
@@ -157,7 +167,7 @@ document.getElementById('sow_images').addEventListener('change', function(event)
         
         const captionInput = document.createElement('input');
         captionInput.type = 'text';
-        captionInput.name = 'new_image_captions'; // Corrected name for new captions
+        captionInput.name = 'new_image_captions';
         captionInput.placeholder = 'Enter caption for this image...';
         captionInput.style.width = '100%';
         captionInput.style.padding = '8px';
